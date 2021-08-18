@@ -114,6 +114,8 @@ public class GamingService extends Service {
                 setDisableAutoBrightness(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_AUTO_BRIGHTNESS), false);
             } else if (Constants.GamingActionTargets.DISABLE_GESTURE.equals(target)) {
                 setDisableGesture(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_GESTURE));
+            } else if (Constants.GamingActionTargets.DISABLE_HW_KEYS.equals(target)) {
+                setDisableHwKeys(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_HW_KEYS), false);
             } else if (Constants.GamingActionTargets.DISABLE_RINGTONE.equals(target)) {
                 setDisableRingtone(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_RINGTONE));
             } else if (Constants.GamingActionTargets.SHOW_DANMAKU.equals(target)) {
@@ -227,8 +229,10 @@ public class GamingService extends Service {
             mCurrentConfig.putInt(Constants.ConfigKeys.PERFORMANCE_LEVEL, performanceLevel);
         }
 
-        // gesture
+        // hw keys & gesture
+        boolean disableHwKeys = getBooleanSetting(Constants.ConfigKeys.DISABLE_HW_KEYS, Constants.ConfigDefaultValues.DISABLE_HW_KEYS);
         boolean disableGesture = getBooleanSetting(Constants.ConfigKeys.DISABLE_GESTURE, Constants.ConfigDefaultValues.DISABLE_GESTURE);
+        setDisableHwKeys(disableHwKeys, false);
         setDisableGesture(disableGesture);
 
         // quick-start apps
@@ -247,6 +251,25 @@ public class GamingService extends Service {
         Intent intent = new Intent(Constants.Broadcasts.BROADCAST_CONFIG_CHANGED);
         intent.putExtras(mCurrentConfig);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    private void setDisableHwKeys(boolean disable, boolean restore) {
+        if (!mCurrentConfig.containsKey("old_disable_hw_keys")) {
+            int oldValue = getIntSetting(Settings.Secure.HARDWARE_KEYS_ENABLE, 1);
+            mCurrentConfig.putInt("old_disable_hw_keys", oldValue);
+        }
+        if (!restore) {
+            if (disable) {
+                Settings.Secure.putInt(getContentResolver(), Settings.Secure.HARDWARE_KEYS_ENABLE, 0);
+            } else {
+                Settings.Secure.putInt(getContentResolver(), Settings.Secure.HARDWARE_KEYS_ENABLE, 1);
+            }
+            mCurrentConfig.putBoolean(Constants.ConfigKeys.DISABLE_HW_KEYS, disable);
+        } else {
+            int oldValue = mCurrentConfig.getInt("old_disable_hw_keys");
+            mCurrentConfig.putBoolean(Constants.ConfigKeys.DISABLE_HW_KEYS, oldValue == 0);
+            Settings.Secure.putInt(getContentResolver(), Settings.Secure.HARDWARE_KEYS_ENABLE, oldValue);
+        }
     }
 
     private void setDisableGesture(boolean disable) {
@@ -314,6 +337,7 @@ public class GamingService extends Service {
         stopServiceAsUser(mOverlayServiceIntent, UserHandle.CURRENT);
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
         setDisableGesture(false);
+        setDisableHwKeys(false, true);
         setDisableAutoBrightness(false, true);
         setDisableRingtone(false);
         setPerformanceLevel(-1);
