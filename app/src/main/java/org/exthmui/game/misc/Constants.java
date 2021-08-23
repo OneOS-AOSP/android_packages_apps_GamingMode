@@ -69,6 +69,9 @@ public class Constants {
         // 屏蔽按键
         public static final String DISABLE_HW_KEYS = Settings.System.GAMING_MODE_DISABLE_HW_KEYS;
 
+        // Disable navbar
+        public static final String DISABLE_NAVBAR = Settings.System.GAMING_MODE_DISABLE_NAVBAR;
+
         // 屏蔽手势
         public static final String DISABLE_GESTURE = Settings.System.GAMING_MODE_DISABLE_GESTURE;
 
@@ -101,6 +104,9 @@ public class Constants {
         // 关闭自动亮度
         public static final boolean DISABLE_AUTO_BRIGHTNESS = true;
 
+        // Disable navbar
+        public static final boolean DISABLE_NAVBAR = true;
+
         // 屏蔽手势
         public static final boolean DISABLE_GESTURE = true;
 
@@ -122,6 +128,8 @@ public class Constants {
         public static final String DISABLE_RINGTONE = ConfigKeys.DISABLE_RINGTONE;
         // 屏蔽按键
         public static final String DISABLE_HW_KEYS = ConfigKeys.DISABLE_HW_KEYS;
+        // Disable navbar
+        public static final String DISABLE_NAVBAR = ConfigKeys.DISABLE_NAVBAR;
         // 屏蔽手势
         public static final String DISABLE_GESTURE = ConfigKeys.DISABLE_GESTURE;
         // 自动亮度

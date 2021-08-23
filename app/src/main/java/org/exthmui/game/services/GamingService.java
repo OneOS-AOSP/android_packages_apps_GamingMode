@@ -114,6 +114,8 @@ public class GamingService extends Service {
                 setDisableAutoBrightness(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_AUTO_BRIGHTNESS), false);
             } else if (Constants.GamingActionTargets.DISABLE_GESTURE.equals(target)) {
                 setDisableGesture(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_GESTURE));
+            } else if (Constants.GamingActionTargets.DISABLE_NAVBAR.equals(target)) {
+                setDisableNavbar(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_NAVBAR), false);
             } else if (Constants.GamingActionTargets.DISABLE_HW_KEYS.equals(target)) {
                 setDisableHwKeys(intent.getBooleanExtra("value", Constants.ConfigDefaultValues.DISABLE_HW_KEYS), false);
             } else if (Constants.GamingActionTargets.DISABLE_RINGTONE.equals(target)) {
@@ -229,10 +231,12 @@ public class GamingService extends Service {
             mCurrentConfig.putInt(Constants.ConfigKeys.PERFORMANCE_LEVEL, performanceLevel);
         }
 
-        // hw keys & gesture
+        // hw keys, gesture & navbar
+        boolean disableNavbar = getBooleanSetting(Constants.ConfigKeys.DISABLE_NAVBAR, Constants.ConfigDefaultValues.DISABLE_NAVBAR);
         boolean disableHwKeys = getBooleanSetting(Constants.ConfigKeys.DISABLE_HW_KEYS, Constants.ConfigDefaultValues.DISABLE_HW_KEYS);
         boolean disableGesture = getBooleanSetting(Constants.ConfigKeys.DISABLE_GESTURE, Constants.ConfigDefaultValues.DISABLE_GESTURE);
         setDisableHwKeys(disableHwKeys, false);
+        setDisableNavbar(disableNavbar, false);
         setDisableGesture(disableGesture);
 
         // quick-start apps
@@ -269,6 +273,25 @@ public class GamingService extends Service {
             int oldValue = mCurrentConfig.getInt("old_disable_hw_keys");
             mCurrentConfig.putBoolean(Constants.ConfigKeys.DISABLE_HW_KEYS, oldValue == 0);
             Settings.Secure.putInt(getContentResolver(), Settings.Secure.HARDWARE_KEYS_ENABLE, oldValue);
+        }
+    }
+
+    private void setDisableNavbar(boolean disable, boolean restore) {
+        if (!mCurrentConfig.containsKey("old_disable_navbar")) {
+            int oldValue = getIntSetting(Settings.System.FORCE_SHOW_NAVBAR, 1);
+            mCurrentConfig.putInt("old_disable_navbar", oldValue);
+        }
+        if (!restore) {
+            if (disable) {
+                Settings.System.putInt(getContentResolver(), Settings.System.FORCE_SHOW_NAVBAR, 0);
+            } else {
+                Settings.System.putInt(getContentResolver(), Settings.System.FORCE_SHOW_NAVBAR, 1);
+            }
+            mCurrentConfig.putBoolean(Constants.ConfigKeys.DISABLE_NAVBAR, disable);
+        } else {
+            int oldValue = mCurrentConfig.getInt("old_disable_navbar");
+            mCurrentConfig.putBoolean(Constants.ConfigKeys.DISABLE_NAVBAR, oldValue == 0);
+            Settings.System.putInt(getContentResolver(), Settings.System.FORCE_SHOW_NAVBAR, oldValue);
         }
     }
 
@@ -338,6 +361,7 @@ public class GamingService extends Service {
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
         setDisableGesture(false);
         setDisableHwKeys(false, true);
+        setDisableNavbar(false, true);
         setDisableAutoBrightness(false, true);
         setDisableRingtone(false);
         setPerformanceLevel(-1);
